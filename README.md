@@ -3,9 +3,11 @@
 
 SecureVault est un outil de sécurité avancé démontrant le chiffrement AES-256 et l'intégrité des données via SHA-256. Projet pédagogique pour illustrer les concepts cryptographiques fondamentaux.
 
-## ✨ Fonctionnalités
+##  Fonctionnalités
 
-|**Coffre sécurisé** | Protection par mot de passe maître (jamais stocké en clair) |
+| Fonctionnalité | Description |
+|----------------|-------------|
+| **Coffre sécurisé** | Protection par mot de passe maître (jamais stocké en clair) |
 | **Ajout de mots de passe** | Stockage chiffré des identifiants par site/service |
 | **Affichage masqué** | Visualisation avec bouton œil (masqué par défaut) |
 | **Copie rapide** | Copie des mots de passe dans le presse-papier |
