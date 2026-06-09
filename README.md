@@ -33,7 +33,7 @@ L'application prouve deux concepts fondamentaux :
 
 ```bash
 # Cloner le dépôt
-git clone https://github.com/votre-username/SecureVault.git
+git clone https://github.com/Fullabba/SecureVault.git
 cd SecureVault
 
 # Installer les dépendances
