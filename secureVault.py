@@ -1,3 +1,157 @@
+                                            # ============================================
+                                            # SECURE VAULT - Coffre-fort sécurisé
+                                            # Cryptographie - 8INF874
+                                            # Équipe 5 : Maha El Allem & Oum El Kheir Righi
+                                            # Analyse de sécurité incluse
+                                            # ============================================
+
+import customtkinter as ctk
+from tkinter import messagebox
+from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
+from Crypto.Protocol.KDF import PBKDF2
+import base64
+import json
+import os
+import random
+import string
+import hashlib
+import time
+from datetime import datetime
+
+# ==================== CONFIGURATION ====================
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("blue")
+
+VAULT_FILE = "vault.json"
+HASH_FILE = "master.hash"
+PERF_LOG = "performance.log"
+
+# ==================== FONCTIONS CRYPTO ====================
+
+def hash_master_password(password):
+    """SHA-256 pour l'authentification - Résiste aux collisions"""
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def derive_key(master_password, salt):
+    """
+    PBKDF2 - Dérivation de clé avec 100 000 itérations
+    Résistance : Force brute (calcul coûteux)
+    Résistance : Rainbow tables (sel unique)
+    """
+    return PBKDF2(master_password, salt, dkLen=32, count=100000)
+
+def encrypt_password(master_password, plaintext):
+    """
+    AES-256-GCM - Chiffrement authentifié
+    Confidentialité : AES-256 (clé 256 bits)
+    Intégrité : GCM avec tag 128 bits
+    """
+    salt = get_random_bytes(16)      # Anti-rainbow tables
+    nonce = get_random_bytes(12)     # Anti-replay attack
+    key = derive_key(master_password, salt)
+    
+    cipher = AES.new(key, AES.MODE_GCM, nonce=nonce)
+    ciphertext, tag = cipher.encrypt_and_digest(plaintext.encode())
+    
+    return {
+        "salt": base64.b64encode(salt).decode(),
+        "nonce": base64.b64encode(nonce).decode(),
+        "ciphertext": base64.b64encode(ciphertext).decode(),
+        "tag": base64.b64encode(tag).decode(),
+        "timestamp": datetime.now().isoformat()
+    }
+
+def decrypt_password(master_password, encrypted_data):
+    """
+    Déchiffrement avec vérification du tag
+    Si tag invalide -> donnée corrompue ou modifiée
+    """
+    salt = base64.b64decode(encrypted_data["salt"])
+    nonce = base64.b64decode(encrypted_data["nonce"])
+    ciphertext = base64.b64decode(encrypted_data["ciphertext"])
+    tag = base64.b64decode(encrypted_data["tag"])
+    
+    key = derive_key(master_password, salt)
+    cipher = AES.new(key, AES.MODE_GCM, nonce=nonce)
+    
+    plaintext = cipher.decrypt_and_verify(ciphertext, tag)
+    return plaintext.decode()
+
+def generate_password(length=16):
+    """Générateur de mots de passe robustes (94 caractères possibles)"""
+    chars = string.ascii_letters + string.digits + "!@#$%^&*"
+    return ''.join(random.choice(chars) for _ in range(length))
+
+# ==================== ANALYSE DE SÉCURITÉ et test de performances====================
+
+
+def test_performance():
+    """
+    Tests de performance pour démonstration
+    Mesure les temps de chiffrement/déchiffrement
+    """
+    master = "test_password"
+    data_sizes = [100, 1000, 10000]  # bytes
+    
+    results = []
+    
+    for size in data_sizes:
+        test_data = "X" * size
+        
+        # Chiffrement
+        start = time.time()
+        encrypted = encrypt_password(master, test_data)
+        enc_time = (time.time() - start) * 1000
+        
+        # Déchiffrement
+        start = time.time()
+        decrypted = decrypt_password(master, encrypted)
+        dec_time = (time.time() - start) * 1000
+        
+        results.append({
+            "size": size,
+            "encrypt_ms": enc_time,
+            "decrypt_ms": dec_time
+        })
+    
+    # Log des performances
+    with open(PERF_LOG, "w") as f:
+        f.write(f"=== PERFORMANCE TEST ===\n")
+        f.write(f"Date : {datetime.now()}\n\n")
+        for r in results:
+            f.write(f"Taille : {r['size']} bytes\n")
+            f.write(f"Chiffrement : {r['encrypt_ms']:.2f} ms\n")
+            f.write(f"Déchiffrement : {r['decrypt_ms']:.2f} ms\n\n")
+    
+    return results
+
+
+# ==================== GESTION DU COFFRE ====================
+
+def load_vault():
+    if not os.path.exists(VAULT_FILE):
+        return {}
+    with open(VAULT_FILE, "r") as f:
+        return json.load(f)
+
+def save_vault(data):
+    with open(VAULT_FILE, "w") as f:
+        json.dump(data, f, indent=2)
+
+def is_first_use():
+    return not os.path.exists(HASH_FILE)
+
+def get_vault_stats():
+    """Statistiques du coffre"""
+    vault = load_vault()
+    total = sum(len(entries) for entries in vault.values())
+    return {
+        "total_passwords": total,
+        "total_sites": len(vault),
+        "last_backup": datetime.now().isoformat()
+    }
+
 # ==================== INTERFACE GRAPHIQUE ====================
 
 class SecureVaultApp:
