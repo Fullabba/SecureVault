@@ -36,16 +36,14 @@ def hash_master_password(password):
 def derive_key(master_password, salt):
     """
     PBKDF2 - Dérivation de clé avec 100 000 itérations
-    Résistance : Force brute (calcul coûteux)
-    Résistance : Rainbow tables (sel unique)
+    Résistance : Force brute (calcul coûteux) +Rainbow tables (sel unique)
     """
     return PBKDF2(master_password, salt, dkLen=32, count=100000)
 
 def encrypt_password(master_password, plaintext):
     """
     AES-256-GCM - Chiffrement authentifié
-    Confidentialité : AES-256 (clé 256 bits)
-    Intégrité : GCM avec tag 128 bits
+    Confidentialité : AES-256 (clé 256 bits) + Intégrité : GCM avec tag 128 bits
     """
     salt = get_random_bytes(16)      # Anti-rainbow tables
     nonce = get_random_bytes(12)     # Anti-replay attack
@@ -88,50 +86,7 @@ def generate_password(length=16):
 def security_analysis():
     """
     ANALYSE COMPLÈTE DE SÉCURITÉ
-    
-    RÉSISTANCE AUX ATTAQUES :
-    ========================
-    1. Force brute :
-       - PBKDF2 avec 100 000 itérations
-       - Coût calcul : ~0.1s par tentative
-       - 10^18 combinaisons pour un mot de passe de 10 caractères
-    
-    2. Attaque par dictionnaire :
-       - Sel unique de 16 bytes par mot de passe
-       - Rend les tables pré-calculées inutiles
-    
-    3. Rainbow tables :
-       - Sel + SHA-256 empêche leur utilisation
-    
-    4. Replay attack :
-       - Nonce unique de 12 bytes dans GCM
-       - Chaque chiffrement a un nonce différent
-    
-    5. Corruption de données :
-       - Tag GCM de 128 bits
-       - Détection immédiate de toute modification
-    
-    LIMITES IDENTIFIÉES :
-    ====================
-    1. Authentification mono-facteur :
-       - Un seul mot de passe protège tout
-       - Risque en cas de keylogger
-    
-    2. Pas de récupération :
-       - Perte du master password = perte définitive
-       - Aucun backdoor ou réinitialisation possible
-    
-    3. Sécurité de la machine hôte :
-       - Si la machine est compromise, le coffre aussi
-       - Pas de protection contre un keylogger
-    
-    AMÉLIORATIONS POSSIBLES :
-    ========================
-    1. Ajouter Argon2id (meilleur que PBKDF2)
-    2. Implémenter 2FA (TOTP, YubiKey)
-    3. Sauvegarde cloud chiffrée
-    4. Rotation automatique des mots de passe
-    """
+     """
     pass
 
 def test_performance():
@@ -177,22 +132,7 @@ def test_performance():
 # ==================== COMPARAISON DES ALGORITHMES ====================
 
 def algorithm_comparison():
-    """
-    POUR LA PRÉSENTATION ORALE :
-    
-    AES-GCM vs AES-CBC + HMAC :
-    - GCM : authentification intégrée, plus rapide (1 passage)
-    - CBC+HMAC : 2 passes (chiffrement + MAC), plus lent
-    
-    PBKDF2 vs bcrypt vs Argon2 :
-    - PBKDF2 : standard NIST, utilisé dans le cours
-    - bcrypt : plus résistant au GPU (coût mémoire)
-    - Argon2 : plus récent, recommandé (vainqueur competition PHC)
-    
-    SHA-256 vs MD5 :
-    - MD5 : cassé (collisions trouvées)
-    - SHA-256 : considéré sûr, utilisé dans Bitcoin/Blockchain
-    """
+   
     pass
 
 # ==================== GESTION DU COFFRE ====================
